@@ -22,6 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 */
 
 #include "MPU9250.h"
+#include <SoftwareSerial.h>
+#include "SimpleTimer.h"
+
+SoftwareSerial SoftSerial(2, 3);
+unsigned char last_rx = 0;
+SimpleTimer timer;
+
 
 // an MPU9250 object with the MPU-9250 sensor on I2C bus 0 with address 0x68
 MPU9250 IMU(Wire,0x68);
@@ -29,6 +36,7 @@ int status;
 
 void setup() {
   // serial to display data
+  SoftSerial.begin(9600);
   Serial.begin(115200);
   while(!Serial) {}
 
@@ -41,9 +49,16 @@ void setup() {
     Serial.println(status);
     while(1) {}
   }
+
+  timer.setInterval(50, readIMU);
 }
 
-void loop() {
+void loop()
+{
+  timer.run();
+}
+
+void readIMU() {
   // read the sensor
   IMU.readSensor();
   // display the data
@@ -65,6 +80,28 @@ void loop() {
   Serial.print(",");
   Serial.print(IMU.getMagZ_uT(),6);
   Serial.print(",");
-  Serial.println(IMU.getTemperature_C(),6);
-  delay(50);
+  Serial.print(IMU.getTemperature_C(),6);
+  Serial.print(",");
+ 
+  bool header_found = false; 
+  while (SoftSerial.available())
+  {
+       unsigned char cur_rx = SoftSerial.read();
+       if (last_rx == 0xD3 && cur_rx == 0x00 )
+       {
+         header_found = true;
+         break;  
+       }
+       
+       last_rx = cur_rx;
+      
+       //Serial.print(cur_rx, HEX);
+       //Serial.print("\n");   
+  }
+  if (header_found) {
+     Serial.println("H");
+  } else
+  {
+    Serial.println("N");
+  }
 }
