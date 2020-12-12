@@ -1,3 +1,4 @@
+
 /*
 Basic_I2C.ino
 Brian R Taylor
@@ -64,6 +65,16 @@ void setup() {
     Serial.println(status);
     while(1) {}
   }
+  status = IMU.setAccelRange(MPU9250::ACCEL_RANGE_2G);
+  if (status < 0 ) {
+    Serial.println("Can't set accel range");
+  }
+  status = IMU.setGyroRange(MPU9250::GYRO_RANGE_250DPS);
+  if (status < 0 ) {
+    Serial.println("Can't set gyro range");
+  }
+  status = IMU.setDlpfBandwidth(MPU9250::DLPF_BANDWIDTH_10HZ);
+  
 
   timer.setInterval(50, readIMU);
 }
@@ -109,9 +120,9 @@ void readIMU() {
        last_rx = cur_rx; 
   }
   if (header_found) {
-     Serial.println("*");
+     Serial.println("1.0");
   } else
   {
-    Serial.println("-");
+    Serial.println("0.0");
   }
 }
